@@ -1,16 +1,22 @@
+from Quasigroup import *
 from SteinerTripleSystem import *
 from itertools import *
 
-def linear_STS(k):
+'''
+    Difficult instances for the STS isomorphism problem
+    k: exponent
+    returns: A STS of size n=2**k-1 and every cycle switch of length 4
+'''
+def all_pasches_sts(k):
     n = 2 ** k - 1
-    X = np.array(range(n)) + 1
     B = set()
     for i in range(1, n // 2 + 1):
         for j in range(i + 1, n):
             B.add(tuple(sorted([i - 1, j - 1, i.__xor__(j) - 1])))
     return SteinerTripleSystem(n, B)
 
-
+'''
+'''
 def quasigroup_from_sts(S):
     X = S.X[:]
     n = len(X)
@@ -23,27 +29,28 @@ def quasigroup_from_sts(S):
         mult_table[(t[1], t[2])] = mult_table[(t[2], t[1])] = t[0]
     return Quasigroup(X, mult_table)
 
-
-def find_stsq_isomorphism(Q1, Q2):
+'''
+'''
+def find_quasigroup_isomorphism(Q1, Q2):
     # Check orders
     if Q1.order != Q2.order:
         return False
     # Find a set of generators for Q1
-    G1 = find_stsq_generators(Q1)
-    print(len(G1))
+    G1 = find_quasigroup_generators(Q1)
     # For every set of m elements check if it is a well defined isomorphism
     p = permutations(Q2.X, len(G1))
     while True:
         G2 = p.next()
         iso = zip(G1, G2)
         # print(iso)
-        d = verify_stsq_isomorphism(Q1, Q2, iso)
+        d = verify_quasigroup_isomorphism(Q1, Q2, iso)
         if d:
-            return d
+            return list(map(lambda i: d[i], range(Q1.order)))
     return False
 
-
-def verify_stsq_isomorphism(Q1, Q2, f):
+'''
+'''
+def verify_quasigroup_isomorphism(Q1, Q2, f):
     d = dict(f)
     R = [x[0] for x in f]
     for x in R:
@@ -60,8 +67,9 @@ def verify_stsq_isomorphism(Q1, Q2, f):
                 R.append(z)
     return d
 
-
-def find_stsq_generators(Q):
+'''
+'''
+def find_quasigroup_generators(Q):
     # Random pair to start
     R = set(Q.X[:])
     G = [np.random.choice(list(R))]
@@ -75,6 +83,12 @@ def find_stsq_generators(Q):
         Q2 = Q.generate(G)
     return sorted(G)
 
+'''
+    Returns a permutation defining the isomorphism
+'''
+def miller_algorithm(S1, S2):
+    Q1, Q2 = quasigroup_from_sts(S1), quasigroup_from_sts(S2)
+    return find_quasigroup_isomorphism(Q1, Q2)
 # import sts
 # # All together
 #
